@@ -1,5 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
+
+
+class SongState(BaseModel):
+    id: str
+    title: str
+    bpm: int
+    onset: float
 
 
 class PlayerState(BaseModel):
@@ -12,3 +19,4 @@ class PlayerState(BaseModel):
 
 class GameState(BaseModel):
     players: List[PlayerState]
+    song: Optional[SongState] = None

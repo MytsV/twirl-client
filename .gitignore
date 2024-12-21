@@ -173,3 +173,5 @@ cython_debug/
 *.iml
 
 .idea/
+
+assets/songs

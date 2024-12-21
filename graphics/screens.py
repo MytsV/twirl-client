@@ -1,8 +1,10 @@
+import os
+
 import pygame
 
 from graphics.common import WHITE, RED, GRAY, BLACK
 from graphics.elements import InputField, Button
-from models import PlayerState, GameState
+from models import PlayerState, GameState, SongState
 from network.auth import login
 from network.udp import initialize_client, issue_move
 
@@ -119,6 +121,16 @@ class Player:
         surface.blit(username_text, (text_x, text_y))
 
 
+def play_song(song: SongState):
+    song_path = f'assets/songs/{song.id}.mp3'
+
+    if os.path.exists(song_path):
+        pygame.mixer.music.load(song_path)
+        pygame.mixer.music.play()
+    else:
+        print(f"Song {song.id} not found!")
+
+
 class DanceFloorScreen(Screen):
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
@@ -127,6 +139,10 @@ class DanceFloorScreen(Screen):
         initialize_client(self.screen_manager.user_id, self.screen_manager.token, self.update_state)
 
     def update_state(self, game_state):
+        if game_state and game_state.song:
+            if not self.game_state or not self.game_state.song or game_state.song.id != self.game_state.song.id:
+                play_song(game_state.song)
+
         self.game_state = game_state
         self.update()
 
