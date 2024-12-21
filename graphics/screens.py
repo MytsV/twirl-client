@@ -2,9 +2,11 @@ import pygame
 
 from graphics.common import WHITE, RED, GRAY, BLACK
 from graphics.elements import InputField, Button
-from models import PlayerState
+from models import PlayerState, GameState
 from network.auth import login
 from network.udp import initialize_client, issue_move
+
+from typing import List
 
 
 class Screen:
@@ -65,6 +67,7 @@ class LoginScreen(Screen):
 
 
 PLAYER_RADIUS = 15
+INTERPOLATION_SPEED = 0.065
 
 
 def _draw_player(surface, player: PlayerState, color):
@@ -73,10 +76,41 @@ def _draw_player(surface, player: PlayerState, color):
     pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
 
 
+class Player():
+    def __init__(self, state: PlayerState):
+        self.user_id = state.user_id
+        self.is_main = state.is_main
+        self.shadow = (state.longitude, state.latitude)
+        self.position = (state.longitude, state.latitude)
+
+    def update_state(self, state: PlayerState):
+        self.shadow = (state.longitude, state.latitude)
+
+    def _interpolate_position(self):
+        shadow_x, shadow_y = self.shadow
+        current_x, current_y = self.position
+
+        delta_x = shadow_x - current_x
+        delta_y = shadow_y - current_y
+
+        move_x = current_x + delta_x * INTERPOLATION_SPEED
+        move_y = current_y + delta_y * INTERPOLATION_SPEED
+
+        self.position = (int(move_x), int(move_y))
+
+    def draw(self, surface):
+        self._interpolate_position()
+        x = int(self.position[0] + PLAYER_RADIUS * 2)
+        y = int(self.position[1] + PLAYER_RADIUS * 2)
+        color = RED if self.is_main else BLACK
+        pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
+
+
 class DanceFloorScreen(Screen):
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
-        self.game_state = None
+        self.player_elements: List[Player] = []
+        self.game_state: GameState | None = None
         initialize_client(self.screen_manager.user_id, self.screen_manager.token, self.update_state)
 
     def update_state(self, game_state):
@@ -88,14 +122,32 @@ class DanceFloorScreen(Screen):
             x, y = pygame.mouse.get_pos()
             issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
 
+    def _find_player_element(self, user_id):
+        for player in self.player_elements:
+            if player.user_id == user_id:
+                return player
+        return None
+
+    def _update_player(self, state: PlayerState):
+        player_element = self._find_player_element(state.user_id)
+        if player_element:
+            player_element.update_state(state)
+            return player_element
+        else:
+            return Player(state)
+
     def draw(self, surface):
         surface.fill(GRAY)
 
         if self.game_state:
-            _draw_player(surface, self.game_state.player, RED)
+            new_player_elements = []
+            for player in self.game_state.players:
+                player_element = self._update_player(player)
+                new_player_elements.append(player_element)
+            self.player_elements = new_player_elements
 
-            for other_player in self.game_state.other_players:
-                _draw_player(surface, other_player, BLACK)
+            for player_element in self.player_elements:
+                player_element.draw(surface)
 
         pygame.display.flip()
 

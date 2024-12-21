@@ -6,8 +6,8 @@ class PlayerState(BaseModel):
     user_id: str = Field(..., alias='userId')
     latitude: float
     longitude: float
+    is_main: bool = Field(..., alias='isMain')
 
 
 class GameState(BaseModel):
-    player: PlayerState
-    other_players: List[PlayerState] = Field(..., alias='otherPlayers')
+    players: List[PlayerState]
