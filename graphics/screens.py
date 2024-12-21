@@ -82,18 +82,17 @@ def coordinates_to_remote(position):
     return x, y
 
 
-class Player():
+class Player:
     def __init__(self, state: PlayerState):
+        self.state = state
         self.user_id = state.user_id
-        self.is_main = state.is_main
-        self.shadow = (state.longitude, state.latitude)
         self.position = (state.longitude, state.latitude)
 
     def update_state(self, state: PlayerState):
-        self.shadow = (state.longitude, state.latitude)
+        self.state = state
 
     def _interpolate_position(self):
-        shadow_x, shadow_y = self.shadow
+        shadow_x, shadow_y = (self.state.longitude, self.state.latitude)
         current_x, current_y = self.position
 
         delta_x = shadow_x - current_x
@@ -107,8 +106,17 @@ class Player():
     def draw(self, surface):
         self._interpolate_position()
         x, y = coordinates_to_local(self.position)
-        color = RED if self.is_main else BLACK
+        color = RED if self.state.is_main else BLACK
         pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
+
+        username_font = pygame.font.Font(None, 20)
+        username_text = username_font.render(self.state.username, True, color)
+        text_width, text_height = username_text.get_size()
+
+        text_x = x - text_width // 2
+        text_y = y - PLAYER_RADIUS - text_height - 5
+
+        surface.blit(username_text, (text_x, text_y))
 
 
 class DanceFloorScreen(Screen):
