@@ -41,15 +41,10 @@ class LoginScreen(Screen):
             try:
                 response, error = login(username, password)
                 self.error = error
-                print(response)
+                if response:
+                    self.screen_manager.set_credentials(response)
             except:
                 print('Fatal error on sign in.')
-            # response = self.login_to_server(username, password)
-            # if response.get("success"):
-            #     print("Login Successful!")
-            #     self.screen_manager.set_screen(HomeScreen(self.screen_manager))
-            # else:
-            #     print("Login Failed!")
 
     def draw(self, surface):
         surface.fill(WHITE)
@@ -63,9 +58,12 @@ class LoginScreen(Screen):
             surface.blit(error_surface, (100, 250))
 
 
+# TODO: display the login screen if there are no credentials
 class ScreenManager:
     def __init__(self):
         self.current_screen = None
+        self.user_id = None
+        self.token = None
 
     def set_screen(self, screen):
         self.current_screen = screen
@@ -81,3 +79,7 @@ class ScreenManager:
     def draw(self, surface):
         if self.current_screen:
             self.current_screen.draw(surface)
+
+    def set_credentials(self, response):
+        self.user_id = response['userId']
+        self.token = response['token']
