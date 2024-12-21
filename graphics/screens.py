@@ -1,7 +1,8 @@
 import pygame
 
-from graphics.common import WHITE
+from graphics.common import WHITE, RED
 from graphics.elements import InputField, Button
+from network.auth import login
 
 
 class Screen:
@@ -28,6 +29,7 @@ class LoginScreen(Screen):
         self.username_field = InputField(100, 100, 200, 40)
         self.password_field = InputField(100, 150, 200, 40)
         self.login_button = Button(100, 200, 200, 40, "Login")
+        self.error = None
 
     def handle_event(self, event):
         self.username_field.handle_event(event)
@@ -36,6 +38,12 @@ class LoginScreen(Screen):
         if event.type == pygame.MOUSEBUTTONDOWN and self.login_button.rect.collidepoint(event.pos):
             username = self.username_field.text
             password = self.password_field.text
+            try:
+                response, error = login(username, password)
+                self.error = error
+                print(response)
+            except:
+                print('Fatal error on sign in.')
             # response = self.login_to_server(username, password)
             # if response.get("success"):
             #     print("Login Successful!")
@@ -48,6 +56,11 @@ class LoginScreen(Screen):
         self.username_field.draw(surface)
         self.password_field.draw(surface)
         self.login_button.draw(surface)
+
+        if self.error:
+            error_font = pygame.font.Font(None, 20)
+            error_surface = error_font.render(self.error, True, RED)
+            surface.blit(error_surface, (100, 250))
 
 
 class ScreenManager:
