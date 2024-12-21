@@ -67,13 +67,19 @@ class LoginScreen(Screen):
 
 
 PLAYER_RADIUS = 15
-INTERPOLATION_SPEED = 0.065
+INTERPOLATION_SPEED = 0.15
 
 
-def _draw_player(surface, player: PlayerState, color):
-    x = int(player.longitude + PLAYER_RADIUS * 2)
-    y = int(player.latitude + PLAYER_RADIUS * 2)
-    pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
+def coordinates_to_local(position):
+    x = int(position[0] + PLAYER_RADIUS * 2)
+    y = int(position[1] + PLAYER_RADIUS * 2)
+    return x, y
+
+
+def coordinates_to_remote(position):
+    x = int(position[0] - PLAYER_RADIUS)
+    y = int(position[1] - PLAYER_RADIUS)
+    return x, y
 
 
 class Player():
@@ -100,8 +106,7 @@ class Player():
 
     def draw(self, surface):
         self._interpolate_position()
-        x = int(self.position[0] + PLAYER_RADIUS * 2)
-        y = int(self.position[1] + PLAYER_RADIUS * 2)
+        x, y = coordinates_to_local(self.position)
         color = RED if self.is_main else BLACK
         pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
 
@@ -119,7 +124,7 @@ class DanceFloorScreen(Screen):
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = pygame.mouse.get_pos()
+            x, y = coordinates_to_remote(pygame.mouse.get_pos())
             issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
 
     def _find_player_element(self, user_id):
