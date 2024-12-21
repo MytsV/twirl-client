@@ -7,6 +7,9 @@ import threading
 import time
 
 from dotenv import load_dotenv
+from pydantic import ValidationError
+
+from models import GameState
 
 load_dotenv()
 
@@ -23,13 +26,17 @@ def calculate_hmac(contents, token):
     return hmac_result.hexdigest()
 
 
+def jsonify(contents):
+    return json.dumps(contents, sort_keys=False, separators=(',', ':'), ensure_ascii=False)
+
+
 def send_hello_message(user_id, token):
     contents = "Hello!"
     message = {
         "userId": str(user_id),
         "event": "hello",
         "contents": contents,
-        "hmac": calculate_hmac(json.dumps(contents), token)
+        "hmac": calculate_hmac(jsonify(contents), token)
     }
     client_socket.sendto(json.dumps(message).encode(), SERVER_ADDRESS)
 
@@ -40,6 +47,33 @@ def handle_hello(user_id, token):
         time.sleep(1)  # 1 Hz updates
 
 
-def initialize_client(user_id, token):
+def handle_receiving(update_state):
+    while True:
+        data, _ = client_socket.recvfrom(BUFFER_SIZE)
+        parsed_data = json.loads(data.decode())
+        try:
+            game_state = GameState(**parsed_data)
+            update_state(game_state)
+        except ValidationError as e:
+            print(f"Received faulty game state: {e}")
+
+
+def initialize_client(user_id, token, update_state):
     hello_thread = threading.Thread(target=handle_hello, daemon=True, args=(user_id, token))
     hello_thread.start()
+    receive_thread = threading.Thread(target=handle_receiving, daemon=True, args=(update_state,))
+    receive_thread.start()
+
+
+def issue_move(user_id, token, x, y):
+    contents = {
+        "latitude": y,
+        "longitude": x
+    }
+    message = {
+        "userId": str(user_id),
+        "event": "move",
+        "contents": contents,
+        "hmac": calculate_hmac(jsonify(contents), token)
+    }
+    client_socket.sendto(json.dumps(message).encode(), SERVER_ADDRESS)

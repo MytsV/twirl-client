@@ -1,9 +1,10 @@
 import pygame
 
-from graphics.common import WHITE, RED, GRAY
+from graphics.common import WHITE, RED, GRAY, BLACK
 from graphics.elements import InputField, Button
+from models import PlayerState
 from network.auth import login
-from network.udp import initialize_client
+from network.udp import initialize_client, issue_move
 
 
 class Screen:
@@ -63,13 +64,40 @@ class LoginScreen(Screen):
             surface.blit(error_surface, (100, 250))
 
 
+PLAYER_RADIUS = 15
+
+
+def _draw_player(surface, player: PlayerState, color):
+    x = int(player.longitude + PLAYER_RADIUS * 2)
+    y = int(player.latitude + PLAYER_RADIUS * 2)
+    pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
+
+
 class DanceFloorScreen(Screen):
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
-        initialize_client(self.screen_manager.user_id, self.screen_manager.token)
+        self.game_state = None
+        initialize_client(self.screen_manager.user_id, self.screen_manager.token, self.update_state)
+
+    def update_state(self, game_state):
+        self.game_state = game_state
+        self.update()
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = pygame.mouse.get_pos()
+            issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
 
     def draw(self, surface):
         surface.fill(GRAY)
+
+        if self.game_state:
+            _draw_player(surface, self.game_state.player, RED)
+
+            for other_player in self.game_state.other_players:
+                _draw_player(surface, other_player, BLACK)
+
+        pygame.display.flip()
 
 
 # TODO: display the login screen if there are no credentials
