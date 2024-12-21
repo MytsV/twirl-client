@@ -14,8 +14,6 @@ def login(username: str, password: str):
     if not username or not password:
         return None, "Username and password must be provided."
 
-    print(LOGIN_URL)
-
     payload = {"username": username, "password": password}
 
     try:

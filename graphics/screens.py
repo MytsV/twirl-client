@@ -1,8 +1,9 @@
 import pygame
 
-from graphics.common import WHITE, RED
+from graphics.common import WHITE, RED, GRAY
 from graphics.elements import InputField, Button
 from network.auth import login
+from network.udp import initialize_client
 
 
 class Screen:
@@ -46,6 +47,7 @@ class LoginScreen(Screen):
                 self.error = error
                 if response:
                     self.screen_manager.set_credentials(response)
+                    self.screen_manager.set_screen(DanceFloorScreen(self.screen_manager))
             except:
                 print("Fatal error on sign in.")
 
@@ -59,6 +61,15 @@ class LoginScreen(Screen):
             error_font = pygame.font.Font(None, 20)
             error_surface = error_font.render(self.error, True, RED)
             surface.blit(error_surface, (100, 250))
+
+
+class DanceFloorScreen(Screen):
+    def __init__(self, screen_manager):
+        self.screen_manager = screen_manager
+        initialize_client(self.screen_manager.user_id, self.screen_manager.token)
+
+    def draw(self, surface):
+        surface.fill(GRAY)
 
 
 # TODO: display the login screen if there are no credentials
