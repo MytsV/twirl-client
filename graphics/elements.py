@@ -7,7 +7,7 @@ class InputField:
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
         self.color = GRAY
-        self.text = ''
+        self.text = ""
         self.active = False
 
     def handle_event(self, event):
@@ -27,7 +27,9 @@ class InputField:
 
         text_surface = FONT.render(self.text, True, BLACK)
         text_padding = 5
-        surface.blit(text_surface, (self.rect.x + text_padding, self.rect.y + text_padding))
+        surface.blit(
+            text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
+        )
 
 
 class Button:
@@ -44,4 +46,6 @@ class Button:
 
         text_surface = FONT.render(self.text, True, BLACK)
         text_padding = 5
-        surface.blit(text_surface, (self.rect.x + text_padding, self.rect.y + text_padding))
+        surface.blit(
+            text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
+        )

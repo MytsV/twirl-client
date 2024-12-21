@@ -35,7 +35,10 @@ class LoginScreen(Screen):
         self.username_field.handle_event(event)
         self.password_field.handle_event(event)
 
-        if event.type == pygame.MOUSEBUTTONDOWN and self.login_button.rect.collidepoint(event.pos):
+        if (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and self.login_button.rect.collidepoint(event.pos)
+        ):
             username = self.username_field.text
             password = self.password_field.text
             try:
@@ -44,7 +47,7 @@ class LoginScreen(Screen):
                 if response:
                     self.screen_manager.set_credentials(response)
             except:
-                print('Fatal error on sign in.')
+                print("Fatal error on sign in.")
 
     def draw(self, surface):
         surface.fill(WHITE)
@@ -81,5 +84,5 @@ class ScreenManager:
             self.current_screen.draw(surface)
 
     def set_credentials(self, response):
-        self.user_id = response['userId']
-        self.token = response['token']
+        self.user_id = response["userId"]
+        self.token = response["token"]
