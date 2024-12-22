@@ -1,6 +1,6 @@
 import pygame
 
-from graphics.common import GRAY, BLACK, FONT
+from graphics.common import GRAY, BLACK, FONT, dance_button_image, SCREEN_WIDTH, DANCE_BUTTON_WIDTH, MAROON
 
 
 class InputField:
@@ -49,3 +49,25 @@ class Button:
         surface.blit(
             text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
         )
+
+
+class DanceButton:
+    def __init__(self):
+        padding = 15
+        height = dance_button_image.get_height()
+        self.rect = pygame.Rect(SCREEN_WIDTH - padding - DANCE_BUTTON_WIDTH, padding, DANCE_BUTTON_WIDTH, height)
+
+    def draw(self, surface, is_dancing):
+
+        if is_dancing:
+            pygame.draw.rect(surface, MAROON, self.rect, border_radius=8)
+
+            text_surface = FONT.render("Stop", True, BLACK)
+            text_padding = 15
+            surface.blit(
+                text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
+            )
+        else:
+            surface.blit(
+                dance_button_image, (self.rect.x, self.rect.y)
+            )

@@ -14,7 +14,7 @@ from graphics.common import (
     MAROON,
     GREEN, blob_image, PLAYER_HEIGHT, happy_face_image,
 )
-from graphics.elements import InputField, Button
+from graphics.elements import InputField, Button, DanceButton
 from models import PlayerState, GameState, SongState
 from network.auth import login
 from network.udp import initialize_client, issue_move, change_status, issue_mark
@@ -379,7 +379,7 @@ class DanceFloorScreen(Screen):
         self.arrow_display = None
         self.mark_display = MarkDisplay()
 
-        self.status_button = Button(550, 60, 200, 40, "Status")
+        self.dance_button = DanceButton()
 
         initialize_client(
             self.screen_manager.user_id, self.screen_manager.token, self.update_state
@@ -444,7 +444,7 @@ class DanceFloorScreen(Screen):
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.status_button.rect.collidepoint(event.pos):
+            if self.dance_button.rect.collidepoint(event.pos):
                 is_dancing = self._get_is_dancing()
                 new_status = PlayerStatus.IDLE if is_dancing else PlayerStatus.DANCING
                 change_status(
@@ -491,7 +491,7 @@ class DanceFloorScreen(Screen):
             for player_element in self.player_elements:
                 player_element.draw(surface)
 
-            self.status_button.draw(surface)
+            self.dance_button.draw(surface, is_dancing)
 
         if is_dancing:
             if self.bpm_bar:
