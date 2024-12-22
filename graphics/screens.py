@@ -3,11 +3,21 @@ import time
 
 import pygame
 
-from graphics.common import WHITE, RED, BLACK, MANTLE, LAVENDER, YELLOW, BLUE, MAROON
+from graphics.common import (
+    WHITE,
+    RED,
+    BLACK,
+    MANTLE,
+    LAVENDER,
+    YELLOW,
+    BLUE,
+    MAROON,
+    GREEN,
+)
 from graphics.elements import InputField, Button
 from models import PlayerState, GameState, SongState
 from network.auth import login
-from network.udp import initialize_client, issue_move, change_status
+from network.udp import initialize_client, issue_move, change_status, issue_mark
 
 from typing import List
 
@@ -95,6 +105,13 @@ class Player:
         self.user_id = state.user_id
         self.position = (state.longitude, state.latitude)
 
+        self.mark_colors = {
+            Mark.PERFECT.value: BLUE,
+            Mark.GOOD.value: GREEN,
+            Mark.BAD.value: YELLOW,
+            Mark.MISS.value: MAROON,
+        }
+
     def update_state(self, state: PlayerState):
         self.state = state
 
@@ -113,7 +130,11 @@ class Player:
     def draw(self, surface):
         self._interpolate_position()
         x, y = coordinates_to_local(self.position)
-        color = RED if self.state.is_main else BLACK
+        if not self.state.last_mark:
+            color = RED if self.state.is_main else BLACK
+        else:
+            color = self.mark_colors[self.state.last_mark]
+
         pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
 
         username_font = pygame.font.Font(None, 20)
@@ -405,6 +426,8 @@ class DanceFloorScreen(Screen):
         if not is_combination_complete:
             mark = Mark.MISS
 
+        issue_mark(self.screen_manager.user_id, self.screen_manager.token, mark.value)
+
         self.mark_display.show_mark(mark)
 
     def _get_is_dancing(self):
@@ -420,7 +443,11 @@ class DanceFloorScreen(Screen):
             if self.status_button.rect.collidepoint(event.pos):
                 is_dancing = self._get_is_dancing()
                 new_status = PlayerStatus.IDLE if is_dancing else PlayerStatus.DANCING
-                change_status(self.screen_manager.user_id, self.screen_manager.token, new_status.value)
+                change_status(
+                    self.screen_manager.user_id,
+                    self.screen_manager.token,
+                    new_status.value,
+                )
             else:
                 x, y = coordinates_to_remote(pygame.mouse.get_pos())
                 issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
