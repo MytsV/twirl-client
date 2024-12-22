@@ -3,7 +3,7 @@ import time
 
 import pygame
 
-from graphics.common import WHITE, RED, GRAY, BLACK
+from graphics.common import WHITE, RED, GRAY, BLACK, MANTLE, LAVENDER, YELLOW, BLUE, MAROON
 from graphics.elements import InputField, Button
 from models import PlayerState, GameState, SongState
 from network.auth import login
@@ -58,7 +58,7 @@ class LoginScreen(Screen):
                 print("Fatal error on sign in.")
 
     def draw(self, surface):
-        surface.fill(WHITE)
+        surface.fill(LAVENDER)
         self.username_field.draw(surface)
         self.password_field.draw(surface)
         self.login_button.draw(surface)
@@ -138,10 +138,9 @@ class ArrowCircle:
         self.y = y
         self.radius = radius
         self.direction_code = direction_code
-        self.color = (255, 255, 255)
-        self.arrow_color = (0, 0, 0)
-        self.inverted_color = (255, 0, 0)
+        self.pressed = False
         self.arrow_symbols = ['←', '↑', '→', '↓']
+        self.font = pygame.font.Font(pygame.font.match_font('arial'), 40)
 
     def get_arrow_symbol(self):
         inverted = self.direction_code < 0
@@ -152,12 +151,12 @@ class ArrowCircle:
         return symbol
 
     def draw(self, surface):
-        pygame.draw.circle(surface, self.color, (self.x, self.y), self.radius)
+        unpressed_color = BLUE if self.direction_code >= 0 else MAROON
+        circle_color = YELLOW if self.pressed else unpressed_color
+        pygame.draw.circle(surface, circle_color, (self.x, self.y), self.radius)
 
-        font = pygame.font.SysFont(None, 40)
         symbol = self.get_arrow_symbol()
-        arrow_color = self.inverted_color if self.direction_code < 0 else self.arrow_color
-        text = font.render(symbol, True, arrow_color)
+        text = self.font.render(symbol, True, BLACK)
         text_rect = text.get_rect(center=(self.x, self.y))
         surface.blit(text, text_rect)
 
@@ -171,6 +170,22 @@ class ArrowDisplay:
         self.spacing = spacing
         self.arrows = []
 
+        self.last_pressed = -1
+
+        self.inverted_mapping = {
+            -0: 2,
+            -1: 3,
+            -2: 0,
+            -3: 1
+        }
+
+        self.key_mapping = {
+            pygame.K_LEFT: 0,
+            pygame.K_UP: 1,
+            pygame.K_RIGHT: 2,
+            pygame.K_DOWN: 3
+        }
+
         self.calculate_positions()
 
     def calculate_positions(self):
@@ -183,8 +198,24 @@ class ArrowDisplay:
             self.arrows.append(ArrowCircle(x, y, direction_code, self.circle_radius))
 
     def draw(self, surface):
-        for arrow in self.arrows:
+        for idx in range(len(self.arrows)):
+            arrow = self.arrows[idx]
+            arrow.pressed = idx <= self.last_pressed
             arrow.draw(surface)
+
+    def handle_keydown(self, key):
+        pressed_direction = self.key_mapping[key]
+        next_index = self.last_pressed + 1
+
+        if next_index < len(self.arrow_combination):
+            expected_direction = self.arrow_combination[next_index]
+            if expected_direction < 0:
+                expected_direction = self.inverted_mapping[expected_direction]
+
+            if pressed_direction == expected_direction:
+                self.last_pressed = next_index
+            else:
+                self.last_pressed = -1
 
 
 COUNTS_PER_PASS = 8
@@ -227,13 +258,13 @@ class DanceFloorScreen(Screen):
         self.player_elements: List[Player] = []
         self.game_state: GameState | None = None
         self.bpm_bar: BPMBar | None = None
-        self.current_combination = [0, 1, -1, 3, 2, 0]
+        self.arrow_display = ArrowDisplay(800, 800, [-0, -1, -1, -3, -2, 0])
         initialize_client(self.screen_manager.user_id, self.screen_manager.token, self.update_state)
 
     def update_state(self, game_state):
         if game_state and game_state.song:
             if not self.game_state or not self.game_state.song or game_state.song.id != self.game_state.song.id:
-                play_song(game_state.song)
+                # play_song(game_state.song)
                 self.bpm_bar = BPMBar(400, 500, 200, game_state.song.bpm)
 
         self.game_state = game_state
@@ -243,6 +274,9 @@ class DanceFloorScreen(Screen):
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = coordinates_to_remote(pygame.mouse.get_pos())
             issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
+        elif event.type == pygame.KEYDOWN:
+            pressed_key = event.key
+            self.arrow_display.handle_keydown(pressed_key)
 
     def _find_player_element(self, user_id):
         for player in self.player_elements:
@@ -259,7 +293,7 @@ class DanceFloorScreen(Screen):
             return Player(state)
 
     def draw(self, surface):
-        surface.fill(GRAY)
+        surface.fill(MANTLE)
 
         if self.game_state:
             new_player_elements = []
@@ -275,8 +309,7 @@ class DanceFloorScreen(Screen):
             self.bpm_bar.update()
             self.bpm_bar.draw(surface)
 
-        arrows = ArrowDisplay(800, 800, self.current_combination)
-        arrows.draw(surface)
+        self.arrow_display.draw(surface)
 
         pygame.display.flip()
 
