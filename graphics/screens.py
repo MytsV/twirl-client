@@ -7,7 +7,7 @@ from graphics.common import WHITE, RED, BLACK, MANTLE, LAVENDER, YELLOW, BLUE, M
 from graphics.elements import InputField, Button
 from models import PlayerState, GameState, SongState
 from network.auth import login
-from network.udp import initialize_client, issue_move
+from network.udp import initialize_client, issue_move, change_status
 
 from typing import List
 
@@ -240,6 +240,11 @@ class Mark(Enum):
     MISS = "miss"
 
 
+class PlayerStatus(Enum):
+    DANCING = "dancing"
+    IDLE = "idle"
+
+
 class BPMBar:
     def __init__(
         self, bar_x: int, bar_y: int, bar_width: int, bpm: int, on_pass, on_start
@@ -348,6 +353,9 @@ class DanceFloorScreen(Screen):
         self.bpm_bar: BPMBar | None = None
         self.arrow_display = None
         self.mark_display = MarkDisplay()
+
+        self.status_button = Button(550, 60, 200, 40, "Status")
+
         initialize_client(
             self.screen_manager.user_id, self.screen_manager.token, self.update_state
         )
@@ -399,10 +407,23 @@ class DanceFloorScreen(Screen):
 
         self.mark_display.show_mark(mark)
 
+    def _get_is_dancing(self):
+        if not self.game_state:
+            return False
+        for player in self.game_state.players:
+            if player.is_main:
+                return player.status == PlayerStatus.DANCING.value
+        return False
+
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = coordinates_to_remote(pygame.mouse.get_pos())
-            issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
+            if self.status_button.rect.collidepoint(event.pos):
+                is_dancing = self._get_is_dancing()
+                new_status = PlayerStatus.IDLE if is_dancing else PlayerStatus.DANCING
+                change_status(self.screen_manager.user_id, self.screen_manager.token, new_status.value)
+            else:
+                x, y = coordinates_to_remote(pygame.mouse.get_pos())
+                issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
         elif event.type == pygame.KEYDOWN and self.arrow_display:
             pressed_key = event.key
             if pressed_key == pygame.K_SPACE:
@@ -427,6 +448,8 @@ class DanceFloorScreen(Screen):
     def draw(self, surface):
         surface.fill(MANTLE)
 
+        is_dancing = self._get_is_dancing()
+
         if self.game_state:
             new_player_elements = []
             for player in self.game_state.players:
@@ -437,14 +460,17 @@ class DanceFloorScreen(Screen):
             for player_element in self.player_elements:
                 player_element.draw(surface)
 
-        if self.bpm_bar:
-            self.bpm_bar.update()
-            self.bpm_bar.draw(surface)
+            self.status_button.draw(surface)
 
-        if self.arrow_display:
-            self.arrow_display.draw(surface)
+        if is_dancing:
+            if self.bpm_bar:
+                self.bpm_bar.update()
+                self.bpm_bar.draw(surface)
 
-        self.mark_display.draw(surface)
+            if self.arrow_display:
+                self.arrow_display.draw(surface)
+
+            self.mark_display.draw(surface)
 
         pygame.display.flip()
 

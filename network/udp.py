@@ -82,3 +82,14 @@ def issue_move(user_id, token, x, y):
         "hmac": calculate_hmac(jsonify(contents), token),
     }
     client_socket.sendto(json.dumps(message).encode(), SERVER_ADDRESS)
+
+
+def change_status(user_id, token, status):
+    contents = status
+    message = {
+        "userId": str(user_id),
+        "event": "status",
+        "contents": contents,
+        "hmac": calculate_hmac(jsonify(contents), token),
+    }
+    client_socket.sendto(json.dumps(message).encode(), SERVER_ADDRESS)
