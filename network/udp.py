@@ -22,21 +22,25 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 
 def calculate_hmac(contents, token):
-    hmac_result = hmac.new(token.encode('utf-8'), contents.encode('utf-8'), hashlib.sha256)
+    hmac_result = hmac.new(
+        token.encode("utf-8"), contents.encode("utf-8"), hashlib.sha256
+    )
     return hmac_result.hexdigest()
 
 
 def jsonify(contents):
-    return json.dumps(contents, sort_keys=False, separators=(',', ':'), ensure_ascii=False)
+    return json.dumps(
+        contents, sort_keys=False, separators=(",", ":"), ensure_ascii=False
+    )
 
 
 def send_hello_message(user_id, token):
-    contents = "Hello!"
+    contents = "1"
     message = {
         "userId": str(user_id),
         "event": "hello",
         "contents": contents,
-        "hmac": calculate_hmac(jsonify(contents), token)
+        "hmac": calculate_hmac(jsonify(contents), token),
     }
     client_socket.sendto(json.dumps(message).encode(), SERVER_ADDRESS)
 
@@ -59,21 +63,22 @@ def handle_receiving(update_state):
 
 
 def initialize_client(user_id, token, update_state):
-    hello_thread = threading.Thread(target=handle_hello, daemon=True, args=(user_id, token))
+    hello_thread = threading.Thread(
+        target=handle_hello, daemon=True, args=(user_id, token)
+    )
     hello_thread.start()
-    receive_thread = threading.Thread(target=handle_receiving, daemon=True, args=(update_state,))
+    receive_thread = threading.Thread(
+        target=handle_receiving, daemon=True, args=(update_state,)
+    )
     receive_thread.start()
 
 
 def issue_move(user_id, token, x, y):
-    contents = {
-        "latitude": y,
-        "longitude": x
-    }
+    contents = {"latitude": y, "longitude": x}
     message = {
         "userId": str(user_id),
         "event": "move",
         "contents": contents,
-        "hmac": calculate_hmac(jsonify(contents), token)
+        "hmac": calculate_hmac(jsonify(contents), token),
     }
     client_socket.sendto(json.dumps(message).encode(), SERVER_ADDRESS)
