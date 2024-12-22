@@ -11,6 +11,8 @@ from network.udp import initialize_client, issue_move
 
 from typing import List
 
+from enum import Enum
+
 
 class Screen:
     def __init__(self):
@@ -204,7 +206,10 @@ class ArrowDisplay:
             arrow.draw(surface)
 
     def handle_keydown(self, key):
-        pressed_direction = self.key_mapping[key]
+        pressed_direction = self.key_mapping.get(key)
+        if pressed_direction is None:
+            return
+
         next_index = self.last_pressed + 1
 
         if next_index < len(self.arrow_combination):
@@ -221,8 +226,15 @@ class ArrowDisplay:
 COUNTS_PER_PASS = 8
 
 
+class Mark(Enum):
+    PERFECT = "perfect"
+    GOOD = "good"
+    BAD = "bad"
+    MISS = "miss"
+
+
 class BPMBar:
-    def __init__(self, bar_x: int, bar_y: int, bar_width: int, bpm: int):
+    def __init__(self, bar_x: int, bar_y: int, bar_width: int, bpm: int, on_pass):
         self.bar_x = bar_x
         self.bar_y = bar_y
         self.bar_width = bar_width
@@ -234,22 +246,71 @@ class BPMBar:
         self.bpm = bpm
         self.count_duration = (COUNTS_PER_PASS * 60) / bpm
         self.last_song_time = time.time()
+        self.on_pass = on_pass
+
+        self.mark_boundaries = {
+            Mark.PERFECT: (0.73, 0.77),
+            Mark.GOOD: (0.71, 0.79),
+            Mark.BAD: (0.68, 0.82)
+        }
 
     def update(self):
         elapsed_time = (time.time() - self.last_song_time)
         progress = (elapsed_time % self.count_duration) / self.count_duration
         self.ball_position = progress
+        if self.ball_position >= 0.95:
+            self.on_pass()
 
     def draw(self, surface):
         ball_x = self.bar_x + self.ball_position * self.bar_width
         ball_y = self.bar_y
 
-        pygame.draw.rect(surface, (255, 255, 255), (self.bar_x, self.bar_y - 10, self.bar_width, 20))
-        pygame.draw.circle(surface, (255, 0, 0), (int(ball_x), int(ball_y)), self.ball_radius)
+        pygame.draw.rect(surface, WHITE, (self.bar_x, self.bar_y - 10, self.bar_width, 20))
+
+        interval_start_x = self.bar_x + self.mark_boundaries[Mark.BAD][0] * self.bar_width
+        interval_end_x = self.bar_x + self.mark_boundaries[Mark.BAD][1] * self.bar_width
+        pygame.draw.rect(surface, LAVENDER, (interval_start_x, self.bar_y - 10, interval_end_x - interval_start_x, 20))
+
+        pygame.draw.circle(surface, RED, (int(ball_x), int(ball_y)), self.ball_radius)
 
     def set_bpm(self, bpm: int):
         self.bpm = bpm
         self.count_duration = (COUNTS_PER_PASS * 60) / bpm
+
+    def calculate_mark(self):
+        for mark, (start, end) in self.mark_boundaries.items():
+            if start <= self.ball_position <= end:
+                return mark
+
+        return Mark.MISS
+
+
+class MarkDisplay:
+    def __init__(self):
+        self.displayed_mark = None
+        self.mark_display_start_time = None
+        self.duration = 1
+
+    def show_mark(self, mark):
+        self.displayed_mark = mark
+        self.mark_display_start_time = time.time()
+
+    def is_displaying(self):
+        return self.displayed_mark is not None and (time.time() - self.mark_display_start_time) <= self.duration
+
+    def clear(self):
+        self.displayed_mark = None
+
+    def draw(self, surface):
+        if self.is_displaying():
+            self._draw_mark(surface, self.displayed_mark)
+        else:
+            self.clear()
+
+    def _draw_mark(self, surface, mark):
+        font = pygame.font.Font(None, 50)
+        mark_text = font.render(str(mark), True, RED)
+        surface.blit(mark_text, (400, 300))
 
 
 class DanceFloorScreen(Screen):
@@ -258,25 +319,46 @@ class DanceFloorScreen(Screen):
         self.player_elements: List[Player] = []
         self.game_state: GameState | None = None
         self.bpm_bar: BPMBar | None = None
-        self.arrow_display = ArrowDisplay(800, 800, [-0, -1, -1, -3, -2, 0])
+        self.current_combination = [-0, -1, -1, -3, -2, 0]
+        self.arrow_display = ArrowDisplay(800, 800, self.current_combination)
+        self.mark_display = MarkDisplay()
         initialize_client(self.screen_manager.user_id, self.screen_manager.token, self.update_state)
+
+    def _on_pass(self):
+        if self.arrow_display:
+            self.arrow_display = None
+            self.mark_display.show_mark(Mark.MISS)
 
     def update_state(self, game_state):
         if game_state and game_state.song:
             if not self.game_state or not self.game_state.song or game_state.song.id != self.game_state.song.id:
                 # play_song(game_state.song)
-                self.bpm_bar = BPMBar(400, 500, 200, game_state.song.bpm)
+                self.bpm_bar = BPMBar(400, 500, 200, game_state.song.bpm, self._on_pass)
 
         self.game_state = game_state
         self.update()
+
+    def _handle_space_down(self):
+        mark = self.bpm_bar.calculate_mark()
+
+        is_combination_complete = self.arrow_display.last_pressed == len(self.arrow_display.arrow_combination) - 1
+        self.arrow_display = None
+
+        if not is_combination_complete:
+            mark = Mark.MISS
+
+        self.mark_display.show_mark(mark)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = coordinates_to_remote(pygame.mouse.get_pos())
             issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
-        elif event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN and self.arrow_display:
             pressed_key = event.key
-            self.arrow_display.handle_keydown(pressed_key)
+            if pressed_key == pygame.K_SPACE:
+                self._handle_space_down()
+            else:
+                self.arrow_display.handle_keydown(pressed_key)
 
     def _find_player_element(self, user_id):
         for player in self.player_elements:
@@ -309,7 +391,10 @@ class DanceFloorScreen(Screen):
             self.bpm_bar.update()
             self.bpm_bar.draw(surface)
 
-        self.arrow_display.draw(surface)
+        if self.arrow_display:
+            self.arrow_display.draw(surface)
+
+        self.mark_display.draw(surface)
 
         pygame.display.flip()
 
