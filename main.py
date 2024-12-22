@@ -5,7 +5,7 @@ from graphics.screens import ScreenManager, LoginScreen
 
 pygame.init()
 
-screen = pygame.display.set_mode((800, 800))
+screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Twirl")
 
 

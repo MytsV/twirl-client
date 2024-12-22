@@ -17,3 +17,10 @@ RED = (255, 0, 0)
 
 pygame.init()
 FONT = pygame.font.Font(None, 32)
+
+blob_image = pygame.image.load('./assets/images/blob.png')
+PLAYER_HEIGHT = 150
+blob_image = pygame.transform.scale(blob_image, (100, PLAYER_HEIGHT))
+
+happy_face_image = pygame.image.load('./assets/images/neutral_face.png')
+happy_face_image = pygame.transform.scale(happy_face_image, (75, 30))

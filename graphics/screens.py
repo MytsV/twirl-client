@@ -12,7 +12,7 @@ from graphics.common import (
     YELLOW,
     BLUE,
     MAROON,
-    GREEN,
+    GREEN, blob_image, PLAYER_HEIGHT, happy_face_image,
 )
 from graphics.elements import InputField, Button
 from models import PlayerState, GameState, SongState
@@ -135,14 +135,18 @@ class Player:
         else:
             color = self.mark_colors[self.state.last_mark]
 
-        pygame.draw.circle(surface, color, (x, y), PLAYER_RADIUS)
+        blob_image_rect = blob_image.get_rect(center=(x, y))
+        surface.blit(blob_image, blob_image_rect.topleft)
+
+        face_image_rect = happy_face_image.get_rect(center=(x, y - 10))
+        surface.blit(happy_face_image, face_image_rect.topleft)
 
         username_font = pygame.font.Font(None, 20)
         username_text = username_font.render(self.state.username, True, color)
         text_width, text_height = username_text.get_size()
 
         text_x = x - text_width // 2
-        text_y = y - PLAYER_RADIUS - text_height - 5
+        text_y = y - PLAYER_HEIGHT / 2 - text_height - 5
 
         surface.blit(username_text, (text_x, text_y))
 
