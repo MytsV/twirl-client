@@ -30,7 +30,7 @@ from graphics.elements import (
     Button,
     DanceButton,
     draw_song_name,
-    draw_location_name,
+    draw_location_name, display_leaderboard,
 )
 from models import PlayerState, GameState, SongState
 from network.auth import login
@@ -602,6 +602,8 @@ class DanceFloorScreen(Screen):
         is_dancing = self._get_is_dancing()
 
         if self.game_state:
+            self.movement_indicator.draw(surface)
+
             new_player_elements = []
             for player in self.game_state.players:
                 player_element = self._update_player(player)
@@ -611,13 +613,14 @@ class DanceFloorScreen(Screen):
             for player_element in self.player_elements:
                 player_element.draw(surface)
 
-            self.movement_indicator.draw(surface)
-
             self.dance_button.draw(surface, is_dancing)
 
             draw_location_name(surface, self.game_state.location_title)
             if self.game_state.song:
                 draw_song_name(surface, self.game_state.song.title)
+
+            if self.game_state.scores:
+                display_leaderboard(surface, self.game_state.scores)
 
         if is_dancing:
             if self.bpm_bar:

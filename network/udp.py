@@ -34,8 +34,11 @@ def jsonify(contents):
     )
 
 
+location_id = os.getenv("LOCATION_ID")
+
+
 def send_hello_message(user_id, token):
-    contents = "1"
+    contents = location_id
     message = {
         "userId": str(user_id),
         "event": "hello",

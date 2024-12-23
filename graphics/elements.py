@@ -12,7 +12,7 @@ from graphics.common import (
     TEXT_COLOR,
     HINT_COLOR,
     MANTLE,
-    DETAILS_FONT,
+    DETAILS_FONT, SCREEN_HEIGHT,
 )
 
 BORDER_RADIUS = 5
@@ -101,3 +101,13 @@ def draw_location_name(surface, name):
     text_surface = DETAILS_FONT.render(f"{name}", True, TEXT_COLOR)
     text_width = text_surface.get_width()
     surface.blit(text_surface, ((SCREEN_WIDTH - text_width) // 2, 25))
+
+
+def display_leaderboard(surface, scores):
+    sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:3]
+    y_offset = SCREEN_HEIGHT - 200
+    for i, (player, score) in enumerate(sorted_scores):
+        number = i + 1
+        rank = f"{number}) {player}: {score}"
+        text = DETAILS_FONT.render(rank, True, TEXT_COLOR)
+        surface.blit(text, (10, y_offset + i * 40))

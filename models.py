@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from graphics.common import DEFAULT_BLOB_COLOR
 
@@ -30,3 +30,4 @@ class GameState(BaseModel):
     arrow_combination: Optional[List[str]] = Field(
         default=None, alias="arrowCombination"
     )
+    scores: Optional[Dict[str, int]] = None
