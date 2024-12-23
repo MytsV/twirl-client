@@ -13,7 +13,7 @@ from graphics.common import (
     BLUE,
     MAROON,
     GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT, TEXT_COLOR,
-    BAR_COLOR, mark_overlay_image, neutral_face_image, sad_face_image,
+    BAR_COLOR, mark_overlay_image, neutral_face_image, sad_face_image, blob_image_pressed,
 )
 from graphics.elements import InputField, Button, DanceButton, draw_song_name, draw_location_name
 from models import PlayerState, GameState, SongState
@@ -111,10 +111,16 @@ def coordinates_to_remote(position):
 
 
 class Player:
-    def __init__(self, state: PlayerState):
+    def __init__(self, state: PlayerState, bpm):
         self.state = state
         self.user_id = state.user_id
         self.position = (state.longitude, state.latitude)
+        self.bpm = bpm
+        self.image = blob_image
+
+        if bpm:
+            self.count_duration = 60 / bpm
+            self.last_count_time = time.time()
 
         self.mark_faces = {
             Mark.PERFECT.value: happy_face_image,
@@ -138,6 +144,28 @@ class Player:
 
         self.position = (int(move_x), int(move_y))
 
+    def _draw_blob(self, surface, x, y):
+        elapsed_time = time.time() - self.last_count_time
+
+        if self.state.status == PlayerStatus.IDLE.value:
+            self.image = blob_image
+
+        if self.bpm and self.state.status == PlayerStatus.DANCING.value:
+            if elapsed_time - self.count_duration >= -0.01:
+                self.last_count_time = time.time()
+
+                if self.image == blob_image:
+                    self.image = blob_image_pressed
+                else:
+                    self.image = blob_image
+
+        blob_image_rect = self.image.get_rect(center=(x, y))
+        surface.blit(self.image, blob_image_rect.topleft)
+
+    def sync_with_song(self, playback_position: float):
+        elapsed_in_count = playback_position % self.count_duration
+        self.last_count_time = time.time() - elapsed_in_count
+
     def draw(self, surface):
         self._interpolate_position()
         x, y = coordinates_to_local(self.position)
@@ -146,8 +174,7 @@ class Player:
         else:
             face_image = self.mark_faces[self.state.last_mark]
 
-        blob_image_rect = blob_image.get_rect(center=(x, y))
-        surface.blit(blob_image, blob_image_rect.topleft)
+        self._draw_blob(surface, x, y)
 
         face_image_rect = face_image.get_rect(center=(x, y - 10))
         surface.blit(face_image, face_image_rect.topleft)
@@ -157,7 +184,7 @@ class Player:
         text_width, text_height = username_text.get_size()
 
         text_x = x - text_width // 2
-        text_y = y - PLAYER_HEIGHT / 2 - text_height - 5
+        text_y = y - PLAYER_HEIGHT / 2 - text_height - 10
 
         surface.blit(username_text, (text_x, text_y))
 
@@ -277,6 +304,7 @@ class PlayerStatus(Enum):
 BAR_WIDTH = 300
 BAR_HEIGHT = 20
 BAR_Y = 600
+
 
 class BPMBar:
     def __init__(
@@ -431,6 +459,8 @@ class DanceFloorScreen(Screen):
         playback_position = max(0, elapsed_time - song.onset)
         self.bpm_bar.sync_with_song(playback_position)
 
+        self.player_elements = []
+
     def update_state(self, game_state):
         if game_state and game_state.song:
             if (
@@ -499,7 +529,8 @@ class DanceFloorScreen(Screen):
             player_element.update_state(state)
             return player_element
         else:
-            return Player(state)
+            player_element = Player(state, self.game_state.song.bpm if self.game_state.song else None)
+            return player_element
 
     def draw(self, surface):
         surface.fill(MANTLE)

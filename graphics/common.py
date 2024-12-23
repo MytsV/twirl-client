@@ -51,10 +51,10 @@ DETAILS_FONT = pygame.font.Font(pygame.font.match_font("arial"), 20)
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
-blob_image = pygame.image.load('./assets/images/blob.png')
+blob_image_unprocessed = pygame.image.load('./assets/images/blob.png')
 PLAYER_HEIGHT = 125
-blob_image = scale_by_height(blob_image, PLAYER_HEIGHT)
-blob_image_pressed = pygame.transform.scale(blob_image, (blob_image.get_width(), PLAYER_HEIGHT - 25))
+blob_image = scale_by_height(blob_image_unprocessed, PLAYER_HEIGHT)
+blob_image_pressed = scale_by_height(blob_image_unprocessed, PLAYER_HEIGHT + 10)
 
 sad_face_image = pygame.image.load('./assets/images/sad_face.png')
 sad_face_image = scale_by_width(sad_face_image, blob_image.get_width() - 30)
