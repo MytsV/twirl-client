@@ -54,9 +54,16 @@ SCREEN_HEIGHT = 720
 blob_image = pygame.image.load('./assets/images/blob.png')
 PLAYER_HEIGHT = 125
 blob_image = scale_by_height(blob_image, PLAYER_HEIGHT)
+blob_image_pressed = pygame.transform.scale(blob_image, (blob_image.get_width(), PLAYER_HEIGHT - 25))
 
-happy_face_image = pygame.image.load('./assets/images/neutral_face.png')
-happy_face_image = scale_by_width(happy_face_image, blob_image.get_width() - 30)
+sad_face_image = pygame.image.load('./assets/images/sad_face.png')
+sad_face_image = scale_by_width(sad_face_image, blob_image.get_width() - 30)
+
+neutral_face_image = pygame.image.load('./assets/images/neutral_face.png')
+neutral_face_image = scale_by_width(neutral_face_image, blob_image.get_width() - 30)
+
+happy_face_image = pygame.image.load('./assets/images/happy_face.png')
+happy_face_image = scale_by_height(happy_face_image, 50)
 
 DANCE_BUTTON_WIDTH = 250
 dance_button_image = pygame.image.load('./assets/images/dance_button.png')

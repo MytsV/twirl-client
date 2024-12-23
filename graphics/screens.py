@@ -13,7 +13,7 @@ from graphics.common import (
     BLUE,
     MAROON,
     GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT, TEXT_COLOR,
-    BAR_COLOR, mark_overlay_image,
+    BAR_COLOR, mark_overlay_image, neutral_face_image, sad_face_image,
 )
 from graphics.elements import InputField, Button, DanceButton, draw_song_name, draw_location_name
 from models import PlayerState, GameState, SongState
@@ -116,11 +116,11 @@ class Player:
         self.user_id = state.user_id
         self.position = (state.longitude, state.latitude)
 
-        self.mark_colors = {
-            Mark.PERFECT.value: BLUE,
-            Mark.GOOD.value: GREEN,
-            Mark.BAD.value: YELLOW,
-            Mark.MISS.value: MAROON,
+        self.mark_faces = {
+            Mark.PERFECT.value: happy_face_image,
+            Mark.GOOD.value: neutral_face_image,
+            Mark.BAD.value: sad_face_image,
+            Mark.MISS.value: sad_face_image,
         }
 
     def update_state(self, state: PlayerState):
@@ -142,18 +142,18 @@ class Player:
         self._interpolate_position()
         x, y = coordinates_to_local(self.position)
         if not self.state.last_mark:
-            color = RED if self.state.is_main else BLACK
+            face_image = neutral_face_image
         else:
-            color = self.mark_colors[self.state.last_mark]
+            face_image = self.mark_faces[self.state.last_mark]
 
         blob_image_rect = blob_image.get_rect(center=(x, y))
         surface.blit(blob_image, blob_image_rect.topleft)
 
-        face_image_rect = happy_face_image.get_rect(center=(x, y - 10))
-        surface.blit(happy_face_image, face_image_rect.topleft)
+        face_image_rect = face_image.get_rect(center=(x, y - 10))
+        surface.blit(face_image, face_image_rect.topleft)
 
         username_font = pygame.font.Font(None, 20)
-        username_text = username_font.render(self.state.username, True, color)
+        username_text = username_font.render(self.state.username, True, TEXT_COLOR)
         text_width, text_height = username_text.get_size()
 
         text_x = x - text_width // 2
