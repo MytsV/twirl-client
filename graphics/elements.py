@@ -1,7 +1,19 @@
 import pygame
 
-from graphics.common import BLACK, MAIN_FONT, dance_button_image, SCREEN_WIDTH, DANCE_BUTTON_WIDTH, MAROON, LAVENDER, \
-    BLUE, TEXT_COLOR, HINT_COLOR, MANTLE, DETAILS_FONT
+from graphics.common import (
+    BLACK,
+    MAIN_FONT,
+    dance_button_image,
+    SCREEN_WIDTH,
+    DANCE_BUTTON_WIDTH,
+    MAROON,
+    LAVENDER,
+    BLUE,
+    TEXT_COLOR,
+    HINT_COLOR,
+    MANTLE,
+    DETAILS_FONT,
+)
 
 BORDER_RADIUS = 5
 
@@ -26,16 +38,16 @@ class InputField:
                 self.text += event.unicode
 
     def draw(self, surface):
-        pygame.draw.rect(surface, self.color, self.rect, width=2, border_radius=BORDER_RADIUS)
+        pygame.draw.rect(
+            surface, self.color, self.rect, width=2, border_radius=BORDER_RADIUS
+        )
 
         if self.text:
             text_surface = MAIN_FONT.render(self.text, True, TEXT_COLOR)
         else:
             text_surface = MAIN_FONT.render(self.hint, True, HINT_COLOR)
 
-        surface.blit(
-            text_surface, (self.rect.x + 10, self.rect.y + 14)
-        )
+        surface.blit(text_surface, (self.rect.x + 10, self.rect.y + 14))
 
 
 class Button:
@@ -51,16 +63,19 @@ class Button:
         pygame.draw.rect(surface, LAVENDER, self.rect, border_radius=BORDER_RADIUS)
 
         text_surface = MAIN_FONT.render(self.text, True, MANTLE)
-        surface.blit(
-            text_surface, (self.rect.x + 10, self.rect.y + 14)
-        )
+        surface.blit(text_surface, (self.rect.x + 10, self.rect.y + 14))
 
 
 class DanceButton:
     def __init__(self):
         padding = 15
         height = dance_button_image.get_height()
-        self.rect = pygame.Rect(SCREEN_WIDTH - padding - DANCE_BUTTON_WIDTH, padding, DANCE_BUTTON_WIDTH, height)
+        self.rect = pygame.Rect(
+            SCREEN_WIDTH - padding - DANCE_BUTTON_WIDTH,
+            padding,
+            DANCE_BUTTON_WIDTH,
+            height,
+        )
 
     def draw(self, surface, is_dancing):
 
@@ -73,23 +88,16 @@ class DanceButton:
                 text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
             )
         else:
-            surface.blit(
-                dance_button_image, (self.rect.x, self.rect.y)
-            )
+            surface.blit(dance_button_image, (self.rect.x, self.rect.y))
 
 
 def draw_song_name(surface, name):
     text_surface = DETAILS_FONT.render(f"♪ {name} ♪", True, TEXT_COLOR)
     text_width = text_surface.get_width()
-    surface.blit(
-        text_surface, ((SCREEN_WIDTH - text_width) // 2, 670)
-    )
+    surface.blit(text_surface, ((SCREEN_WIDTH - text_width) // 2, 670))
 
 
 def draw_location_name(surface, name):
     text_surface = DETAILS_FONT.render(f"{name}", True, TEXT_COLOR)
     text_width = text_surface.get_width()
-    surface.blit(
-        text_surface, ((SCREEN_WIDTH - text_width) // 2, 25)
-    )
-
+    surface.blit(text_surface, ((SCREEN_WIDTH - text_width) // 2, 25))

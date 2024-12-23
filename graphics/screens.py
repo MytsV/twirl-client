@@ -4,18 +4,34 @@ import time
 import pygame
 
 from graphics.common import (
-    WHITE,
-    RED,
-    BLACK,
     MANTLE,
     LAVENDER,
     YELLOW,
     BLUE,
     MAROON,
-    GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT, TEXT_COLOR,
-    BAR_COLOR, mark_overlay_image, neutral_face_image, sad_face_image, blob_image_pressed, move_icon_image,
+    GREEN,
+    PLAYER_HEIGHT,
+    happy_face_image,
+    logo_image,
+    LOGO_WIDTH,
+    SCREEN_WIDTH,
+    DETAILS_FONT,
+    TEXT_COLOR,
+    BAR_COLOR,
+    mark_overlay_image,
+    neutral_face_image,
+    sad_face_image,
+    move_icon_image,
+    blob_colors,
+    DEFAULT_BLOB_COLOR,
 )
-from graphics.elements import InputField, Button, DanceButton, draw_song_name, draw_location_name
+from graphics.elements import (
+    InputField,
+    Button,
+    DanceButton,
+    draw_song_name,
+    draw_location_name,
+)
 from models import PlayerState, GameState, SongState
 from network.auth import login
 from network.udp import initialize_client, issue_move, change_status, issue_mark
@@ -55,9 +71,23 @@ class LoginScreen(Screen):
         field_x = SCREEN_WIDTH / 2 - field_width / 2
         field_y = 375
 
-        self.username_field = InputField(field_x, field_y, field_width, field_height, "Username")
-        self.password_field = InputField(field_x, field_y + field_padding + field_height, field_width, field_height, "Password")
-        self.login_button = Button(field_x, field_y + field_padding * 2 + field_height * 2, field_width, field_height, "Login")
+        self.username_field = InputField(
+            field_x, field_y, field_width, field_height, "Username"
+        )
+        self.password_field = InputField(
+            field_x,
+            field_y + field_padding + field_height,
+            field_width,
+            field_height,
+            "Password",
+        )
+        self.login_button = Button(
+            field_x,
+            field_y + field_padding * 2 + field_height * 2,
+            field_width,
+            field_height,
+            "Login",
+        )
         self.error = None
 
     def handle_event(self, event):
@@ -111,12 +141,18 @@ def coordinates_to_remote(position):
 
 
 class Player:
+    def _get_images(self):
+        images = blob_colors[self.state.color]
+        if images is None:
+            return blob_colors[DEFAULT_BLOB_COLOR]
+        return images
+
     def __init__(self, state: PlayerState, bpm):
         self.state = state
         self.user_id = state.user_id
         self.position = (state.longitude, state.latitude)
         self.bpm = bpm
-        self.image = blob_image
+        self.image = self._get_images()[0]
 
         if bpm:
             self.count_duration = 60 / bpm
@@ -146,6 +182,7 @@ class Player:
 
     def _draw_blob(self, surface, x, y):
         elapsed_time = time.time() - self.last_count_time
+        blob_image, blob_image_pressed = self._get_images()
 
         if self.state.status == PlayerStatus.IDLE.value:
             self.image = blob_image
@@ -307,9 +344,7 @@ BAR_Y = 600
 
 
 class BPMBar:
-    def __init__(
-        self, bpm: int, on_pass, on_start
-    ):
+    def __init__(self, bpm: int, on_pass, on_start):
         self.mark_boundaries = {
             Mark.PERFECT: (0.74, 0.76),
             Mark.GOOD: (0.71, 0.79),
@@ -322,11 +357,13 @@ class BPMBar:
         self.ball_position = 0
 
         self.interval_start_x = (
-                self.bar_x + self.mark_boundaries[Mark.BAD][0] * BAR_WIDTH
+            self.bar_x + self.mark_boundaries[Mark.BAD][0] * BAR_WIDTH
         )
         interval_end_x = self.bar_x + self.mark_boundaries[Mark.BAD][1] * BAR_WIDTH
 
-        self.mark_overlay_image = pygame.transform.scale(mark_overlay_image, (interval_end_x - self.interval_start_x, BAR_HEIGHT))
+        self.mark_overlay_image = pygame.transform.scale(
+            mark_overlay_image, (interval_end_x - self.interval_start_x, BAR_HEIGHT)
+        )
 
         self.bpm = bpm
         self.count_duration = (COUNTS_PER_PASS * 60) / bpm
@@ -348,13 +385,19 @@ class BPMBar:
         ball_y = BAR_Y
 
         pygame.draw.rect(
-            surface, BAR_COLOR, (self.bar_x, BAR_Y - self.ball_radius, BAR_WIDTH, BAR_HEIGHT),
+            surface,
+            BAR_COLOR,
+            (self.bar_x, BAR_Y - self.ball_radius, BAR_WIDTH, BAR_HEIGHT),
             border_radius=20,
         )
 
-        surface.blit(self.mark_overlay_image, (self.interval_start_x, BAR_Y - self.ball_radius))
+        surface.blit(
+            self.mark_overlay_image, (self.interval_start_x, BAR_Y - self.ball_radius)
+        )
 
-        pygame.draw.circle(surface, LAVENDER, (int(ball_x), int(ball_y)), self.ball_radius)
+        pygame.draw.circle(
+            surface, LAVENDER, (int(ball_x), int(ball_y)), self.ball_radius
+        )
 
     def sync_with_song(self, playback_position: float):
         elapsed_in_count = playback_position % self.count_duration
@@ -382,14 +425,14 @@ class MarkDisplay:
             Mark.PERFECT: "Perfect!",
             Mark.GOOD: "Good",
             Mark.BAD: "Bad...",
-            Mark.MISS: "Miss!"
+            Mark.MISS: "Miss!",
         }
 
         self.mark_to_color = {
             Mark.PERFECT: BLUE,
             Mark.GOOD: GREEN,
             Mark.BAD: YELLOW,
-            Mark.MISS: MAROON
+            Mark.MISS: MAROON,
         }
 
     def show_mark(self, mark):
@@ -548,7 +591,9 @@ class DanceFloorScreen(Screen):
             player_element.update_state(state)
             return player_element
         else:
-            player_element = Player(state, self.game_state.song.bpm if self.game_state.song else None)
+            player_element = Player(
+                state, self.game_state.song.bpm if self.game_state.song else None
+            )
             return player_element
 
     def draw(self, surface):

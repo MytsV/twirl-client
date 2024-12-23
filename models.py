@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+from graphics.common import DEFAULT_BLOB_COLOR
+
 
 class SongState(BaseModel):
     id: str
@@ -18,6 +20,7 @@ class PlayerState(BaseModel):
     is_main: bool = Field(..., alias="isMain")
     status: str
     last_mark: Optional[str] = Field(default=None, alias="lastMark")
+    color: Optional[str] = DEFAULT_BLOB_COLOR
 
 
 class GameState(BaseModel):

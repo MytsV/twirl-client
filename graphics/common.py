@@ -43,6 +43,18 @@ def scale_by_width(image: pygame.Surface, new_width: int) -> pygame.Surface:
     return scaled_image
 
 
+PLAYER_HEIGHT = 125
+
+
+def load_blob(image_name):
+    blob_image_unprocessed = pygame.image.load(
+        f"./assets/images/blobs/{image_name}.png"
+    )
+    blob_image = scale_by_height(blob_image_unprocessed, PLAYER_HEIGHT)
+    blob_image_pressed = scale_by_height(blob_image_unprocessed, PLAYER_HEIGHT + 10)
+    return blob_image, blob_image_pressed
+
+
 pygame.init()
 
 MAIN_FONT = pygame.font.Font(None, 32)
@@ -51,29 +63,36 @@ DETAILS_FONT = pygame.font.Font(pygame.font.match_font("arial"), 20)
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
-blob_image_unprocessed = pygame.image.load('./assets/images/blob.png')
-PLAYER_HEIGHT = 125
-blob_image = scale_by_height(blob_image_unprocessed, PLAYER_HEIGHT)
-blob_image_pressed = scale_by_height(blob_image_unprocessed, PLAYER_HEIGHT + 10)
+blob_colors = {
+    "white": load_blob("blob_white"),
+    "green": load_blob("blob_green"),
+    "lavender": load_blob("blob_lavender"),
+    "maroon": load_blob("blob_maroon"),
+    "yellow": load_blob("blob_yellow"),
+    "gradient": load_blob("blob_gradient"),
+}
+DEFAULT_BLOB_COLOR = "white"
 
-sad_face_image = pygame.image.load('./assets/images/sad_face.png')
+blob_image = blob_colors[DEFAULT_BLOB_COLOR][0]
+
+sad_face_image = pygame.image.load("./assets/images/sad_face.png")
 sad_face_image = scale_by_width(sad_face_image, blob_image.get_width() - 30)
 
-neutral_face_image = pygame.image.load('./assets/images/neutral_face.png')
+neutral_face_image = pygame.image.load("./assets/images/neutral_face.png")
 neutral_face_image = scale_by_width(neutral_face_image, blob_image.get_width() - 30)
 
-happy_face_image = pygame.image.load('./assets/images/happy_face.png')
+happy_face_image = pygame.image.load("./assets/images/happy_face.png")
 happy_face_image = scale_by_height(happy_face_image, 50)
 
 DANCE_BUTTON_WIDTH = 250
-dance_button_image = pygame.image.load('./assets/images/dance_button.png')
+dance_button_image = pygame.image.load("./assets/images/dance_button.png")
 dance_button_image = scale_by_width(dance_button_image, DANCE_BUTTON_WIDTH)
 
 LOGO_WIDTH = 600
-logo_image = pygame.image.load('./assets/images/logo.png')
+logo_image = pygame.image.load("./assets/images/logo.png")
 logo_image = scale_by_width(logo_image, LOGO_WIDTH)
 
-mark_overlay_image = pygame.image.load('./assets/images/mark_overlay.png')
+mark_overlay_image = pygame.image.load("./assets/images/mark_overlay.png")
 
-move_icon_image = pygame.image.load('./assets/images/move_icon.png')
+move_icon_image = pygame.image.load("./assets/images/move_icon.png")
 move_icon_image = scale_by_width(move_icon_image, 30)
