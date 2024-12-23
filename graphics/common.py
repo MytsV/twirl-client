@@ -74,3 +74,6 @@ logo_image = pygame.image.load('./assets/images/logo.png')
 logo_image = scale_by_width(logo_image, LOGO_WIDTH)
 
 mark_overlay_image = pygame.image.load('./assets/images/mark_overlay.png')
+
+move_icon_image = pygame.image.load('./assets/images/move_icon.png')
+move_icon_image = scale_by_width(move_icon_image, 30)

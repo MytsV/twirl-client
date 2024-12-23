@@ -13,7 +13,7 @@ from graphics.common import (
     BLUE,
     MAROON,
     GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT, TEXT_COLOR,
-    BAR_COLOR, mark_overlay_image, neutral_face_image, sad_face_image, blob_image_pressed,
+    BAR_COLOR, mark_overlay_image, neutral_face_image, sad_face_image, blob_image_pressed, move_icon_image,
 )
 from graphics.elements import InputField, Button, DanceButton, draw_song_name, draw_location_name
 from models import PlayerState, GameState, SongState
@@ -179,8 +179,8 @@ class Player:
         face_image_rect = face_image.get_rect(center=(x, y - 10))
         surface.blit(face_image, face_image_rect.topleft)
 
-        username_font = pygame.font.Font(None, 20)
-        username_text = username_font.render(self.state.username, True, TEXT_COLOR)
+        username_color = GREEN if self.state.is_main else TEXT_COLOR
+        username_text = DETAILS_FONT.render(self.state.username, True, username_color)
         text_width, text_height = username_text.get_size()
 
         text_x = x - text_width // 2
@@ -425,6 +425,22 @@ class MarkDisplay:
         surface.blit(mark_text, (x_position, y_position))
 
 
+class MovementIndicator:
+    def __init__(self):
+        self.visible = False
+        self.start_time = 0
+        self.duration = 1
+        self.position = (0, 0)
+
+    def show(self, position):
+        self.start_time = time.time()
+        self.position = position
+
+    def draw(self, surface):
+        if time.time() - self.start_time <= self.duration:
+            surface.blit(move_icon_image, self.position)
+
+
 class DanceFloorScreen(Screen):
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
@@ -435,6 +451,8 @@ class DanceFloorScreen(Screen):
         self.mark_display = MarkDisplay()
 
         self.dance_button = DanceButton()
+
+        self.movement_indicator = MovementIndicator()
 
         initialize_client(
             self.screen_manager.user_id, self.screen_manager.token, self.update_state
@@ -510,6 +528,7 @@ class DanceFloorScreen(Screen):
             else:
                 x, y = coordinates_to_remote(pygame.mouse.get_pos())
                 issue_move(self.screen_manager.user_id, self.screen_manager.token, x, y)
+                self.movement_indicator.show(pygame.mouse.get_pos())
         elif event.type == pygame.KEYDOWN and self.arrow_display:
             pressed_key = event.key
             if pressed_key == pygame.K_SPACE:
@@ -546,6 +565,8 @@ class DanceFloorScreen(Screen):
 
             for player_element in self.player_elements:
                 player_element.draw(surface)
+
+            self.movement_indicator.draw(surface)
 
             self.dance_button.draw(surface, is_dancing)
 
