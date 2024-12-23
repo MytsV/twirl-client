@@ -10,6 +10,8 @@ BLUE = (137, 180, 250)
 LAVENDER = (180, 190, 254)
 MANTLE = (24, 24, 37)
 
+BAR_COLOR = (73, 77, 100)
+
 TEXT_COLOR = (198, 208, 245)
 HINT_COLOR = (131, 139, 167)
 
@@ -63,3 +65,5 @@ dance_button_image = scale_by_width(dance_button_image, DANCE_BUTTON_WIDTH)
 LOGO_WIDTH = 600
 logo_image = pygame.image.load('./assets/images/logo.png')
 logo_image = scale_by_width(logo_image, LOGO_WIDTH)
+
+mark_overlay_image = pygame.image.load('./assets/images/mark_overlay.png')

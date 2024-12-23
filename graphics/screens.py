@@ -12,7 +12,8 @@ from graphics.common import (
     YELLOW,
     BLUE,
     MAROON,
-    GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT,
+    GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT, TEXT_COLOR,
+    BAR_COLOR, mark_overlay_image,
 )
 from graphics.elements import InputField, Button, DanceButton
 from models import PlayerState, GameState, SongState
@@ -281,27 +282,35 @@ class PlayerStatus(Enum):
 
 class BPMBar:
     def __init__(
-        self, bar_x: int, bar_y: int, bar_width: int, bpm: int, on_pass, on_start
+        self, bpm: int, on_pass, on_start
     ):
-        self.bar_x = bar_x
-        self.bar_y = bar_y
-        self.bar_width = bar_width
+        self.mark_boundaries = {
+            Mark.PERFECT: (0.74, 0.76),
+            Mark.GOOD: (0.71, 0.79),
+            Mark.BAD: (0.65, 0.85),
+        }
+
+        self.bar_width = 300
+        self.bar_height = 20
+
+        self.bar_x = SCREEN_WIDTH / 2 - self.bar_width / 2
+        self.bar_y = 600
 
         self.ball_radius = 10
         self.ball_position = 0
-        self.ball_direction = 1
+
+        self.interval_start_x = (
+                self.bar_x + self.mark_boundaries[Mark.BAD][0] * self.bar_width
+        )
+        interval_end_x = self.bar_x + self.mark_boundaries[Mark.BAD][1] * self.bar_width
+
+        self.mark_overlay_image = pygame.transform.scale(mark_overlay_image, (interval_end_x - self.interval_start_x, self.bar_height))
 
         self.bpm = bpm
         self.count_duration = (COUNTS_PER_PASS * 60) / bpm
         self.last_song_time = time.time()
         self.on_pass = on_pass
         self.on_start = on_start
-
-        self.mark_boundaries = {
-            Mark.PERFECT: (0.73, 0.77),
-            Mark.GOOD: (0.71, 0.79),
-            Mark.BAD: (0.68, 0.82),
-        }
 
     def update(self):
         elapsed_time = time.time() - self.last_song_time
@@ -317,20 +326,13 @@ class BPMBar:
         ball_y = self.bar_y
 
         pygame.draw.rect(
-            surface, WHITE, (self.bar_x, self.bar_y - 10, self.bar_width, 20)
+            surface, BAR_COLOR, (self.bar_x, self.bar_y - self.ball_radius, self.bar_width, self.bar_height),
+            border_radius=20,
         )
 
-        interval_start_x = (
-            self.bar_x + self.mark_boundaries[Mark.BAD][0] * self.bar_width
-        )
-        interval_end_x = self.bar_x + self.mark_boundaries[Mark.BAD][1] * self.bar_width
-        pygame.draw.rect(
-            surface,
-            LAVENDER,
-            (interval_start_x, self.bar_y - 10, interval_end_x - interval_start_x, 20),
-        )
+        surface.blit(self.mark_overlay_image, (self.interval_start_x, self.bar_y - self.ball_radius))
 
-        pygame.draw.circle(surface, RED, (int(ball_x), int(ball_y)), self.ball_radius)
+        pygame.draw.circle(surface, LAVENDER, (int(ball_x), int(ball_y)), self.ball_radius)
 
     def sync_with_song(self, playback_position: float):
         elapsed_in_count = playback_position % self.count_duration
@@ -410,7 +412,7 @@ class DanceFloorScreen(Screen):
         elapsed_time = current_time - song.start_timestamp / 1000
         play_song(song, elapsed_time)
 
-        self.bpm_bar = BPMBar(400, 500, 200, song.bpm, self._on_pass, self._on_start)
+        self.bpm_bar = BPMBar(song.bpm, self._on_pass, self._on_start)
 
         playback_position = max(0, elapsed_time - song.onset)
         self.bpm_bar.sync_with_song(playback_position)

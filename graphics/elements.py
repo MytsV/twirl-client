@@ -70,7 +70,7 @@ class DanceButton:
             text_surface = MAIN_FONT.render("Stop", True, BLACK)
             text_padding = 15
             surface.blit(
-                text_surface, (self.rect.x + DANCE_BUTTON_WIDTH / 2, self.rect.y + text_padding)
+                text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
             )
         else:
             surface.blit(
