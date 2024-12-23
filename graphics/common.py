@@ -46,7 +46,7 @@ def scale_by_width(image: pygame.Surface, new_width: int) -> pygame.Surface:
 pygame.init()
 
 MAIN_FONT = pygame.font.Font(None, 32)
-DETAILS_FONT = pygame.font.Font(None, 24)
+DETAILS_FONT = pygame.font.Font(pygame.font.match_font("arial"), 20)
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720

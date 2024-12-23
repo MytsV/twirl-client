@@ -15,7 +15,7 @@ from graphics.common import (
     GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT, TEXT_COLOR,
     BAR_COLOR, mark_overlay_image,
 )
-from graphics.elements import InputField, Button, DanceButton
+from graphics.elements import InputField, Button, DanceButton, draw_song_name, draw_location_name
 from models import PlayerState, GameState, SongState
 from network.auth import login
 from network.udp import initialize_client, issue_move, change_status, issue_mark
@@ -517,6 +517,10 @@ class DanceFloorScreen(Screen):
                 player_element.draw(surface)
 
             self.dance_button.draw(surface, is_dancing)
+
+            draw_location_name(surface, self.game_state.location_title)
+            if self.game_state.song:
+                draw_song_name(surface, self.game_state.song.title)
 
         if is_dancing:
             if self.bpm_bar:

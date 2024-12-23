@@ -1,7 +1,7 @@
 import pygame
 
 from graphics.common import BLACK, MAIN_FONT, dance_button_image, SCREEN_WIDTH, DANCE_BUTTON_WIDTH, MAROON, LAVENDER, \
-    BLUE, TEXT_COLOR, HINT_COLOR, MANTLE
+    BLUE, TEXT_COLOR, HINT_COLOR, MANTLE, DETAILS_FONT
 
 BORDER_RADIUS = 5
 
@@ -76,3 +76,20 @@ class DanceButton:
             surface.blit(
                 dance_button_image, (self.rect.x, self.rect.y)
             )
+
+
+def draw_song_name(surface, name):
+    text_surface = DETAILS_FONT.render(f"♪ {name} ♪", True, TEXT_COLOR)
+    text_width = text_surface.get_width()
+    surface.blit(
+        text_surface, ((SCREEN_WIDTH - text_width) // 2, 670)
+    )
+
+
+def draw_location_name(surface, name):
+    text_surface = DETAILS_FONT.render(f"{name}", True, TEXT_COLOR)
+    text_width = text_surface.get_width()
+    surface.blit(
+        text_surface, ((SCREEN_WIDTH - text_width) // 2, 25)
+    )
+
