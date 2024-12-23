@@ -594,6 +594,13 @@ class DanceFloorScreen(Screen):
             player_element = Player(
                 state, self.game_state.song.bpm if self.game_state.song else None
             )
+
+            if self.game_state.song:
+                current_time = time.time()
+                elapsed_time = current_time - self.game_state.song.start_timestamp / 1000
+                playback_position = max(0, elapsed_time - self.game_state.song.onset)
+                player_element.sync_with_song(playback_position)
+
             return player_element
 
     def draw(self, surface):
