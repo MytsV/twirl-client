@@ -19,6 +19,7 @@ from graphics.elements import InputField, Button, DanceButton
 from models import PlayerState, GameState, SongState
 from network.auth import login
 from network.udp import initialize_client, issue_move, change_status, issue_mark
+import pygame.gfxdraw
 
 from typing import List
 
@@ -179,7 +180,7 @@ class ArrowCircle:
         self.direction_code = direction_code
         self.pressed = False
         self.arrow_symbols = ["←", "↑", "→", "↓"]
-        self.font = pygame.font.Font(pygame.font.match_font("arial"), 40)
+        self.font = pygame.font.Font(pygame.font.match_font("arial"), 36)
 
     def get_arrow_symbol(self):
         inverted = self.direction_code < 0
@@ -191,11 +192,11 @@ class ArrowCircle:
 
     def draw(self, surface):
         unpressed_color = BLUE if self.direction_code >= 0 else MAROON
-        circle_color = YELLOW if self.pressed else unpressed_color
-        pygame.draw.circle(surface, circle_color, (self.x, self.y), self.radius)
+        circle_color = GREEN if self.pressed else unpressed_color
+        pygame.gfxdraw.filled_circle(surface, self.x, self.y, self.radius, circle_color)
 
         symbol = self.get_arrow_symbol()
-        text = self.font.render(symbol, True, BLACK)
+        text = self.font.render(symbol, True, MANTLE)
         text_rect = text.get_rect(center=(self.x, self.y))
         surface.blit(text, text_rect)
 
@@ -203,17 +204,11 @@ class ArrowCircle:
 class ArrowDisplay:
     def __init__(
         self,
-        screen_width,
-        screen_height,
         arrow_combination,
-        circle_radius=40,
-        spacing=20,
     ):
-        self.screen_width = screen_width
-        self.screen_height = screen_height
         self.arrow_combination = list(map(int, arrow_combination))
-        self.circle_radius = circle_radius
-        self.spacing = spacing
+        self.circle_radius = 30
+        self.spacing = 10
         self.arrows = []
 
         self.last_pressed = -1
@@ -231,11 +226,10 @@ class ArrowDisplay:
 
     def calculate_positions(self):
         total_width = (
-            len(self.arrow_combination) * (self.circle_radius * 2 + self.spacing)
-            - self.spacing
+            len(self.arrow_combination) * (self.circle_radius * 2 + self.spacing) - 50
         )
-        start_x = (self.screen_width - total_width) // 2
-        y = self.screen_height // 2
+        start_x = (SCREEN_WIDTH - total_width) // 2
+        y = 525
 
         for i, direction_code in enumerate(self.arrow_combination):
             x = start_x + i * (self.circle_radius * 2 + self.spacing)
@@ -293,7 +287,7 @@ class BPMBar:
         self.bar_width = 300
         self.bar_height = 20
 
-        self.bar_x = SCREEN_WIDTH / 2 - self.bar_width / 2
+        self.bar_x = (SCREEN_WIDTH - self.bar_width) // 2
         self.bar_y = 600
 
         self.ball_radius = 10
@@ -403,9 +397,7 @@ class DanceFloorScreen(Screen):
 
     def _on_start(self):
         if self.game_state.arrow_combination and not self.arrow_display:
-            self.arrow_display = ArrowDisplay(
-                800, 800, self.game_state.arrow_combination
-            )
+            self.arrow_display = ArrowDisplay(self.game_state.arrow_combination)
 
     def _update_song(self, song):
         current_time = time.time()
