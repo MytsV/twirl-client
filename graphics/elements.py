@@ -34,7 +34,7 @@ class InputField:
             text_surface = MAIN_FONT.render(self.hint, True, HINT_COLOR)
 
         surface.blit(
-            text_surface, (self.rect.x + 10, self.rect.y + 7)
+            text_surface, (self.rect.x + 10, self.rect.y + 14)
         )
 
 
@@ -52,7 +52,7 @@ class Button:
 
         text_surface = MAIN_FONT.render(self.text, True, MANTLE)
         surface.blit(
-            text_surface, (self.rect.x + 10, self.rect.y + 8)
+            text_surface, (self.rect.x + 10, self.rect.y + 14)
         )
 
 

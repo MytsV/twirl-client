@@ -47,11 +47,11 @@ class LoginScreen(Screen):
         self.screen_manager = screen_manager
 
         field_width = 250
-        field_height = 40
+        field_height = 50
         field_padding = 15
 
         field_x = SCREEN_WIDTH / 2 - field_width / 2
-        field_y = 400
+        field_y = 375
 
         self.username_field = InputField(field_x, field_y, field_width, field_height, "Username")
         self.password_field = InputField(field_x, field_y + field_padding + field_height, field_width, field_height, "Password")
