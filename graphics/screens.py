@@ -274,6 +274,10 @@ class PlayerStatus(Enum):
     IDLE = "idle"
 
 
+BAR_WIDTH = 300
+BAR_HEIGHT = 20
+BAR_Y = 600
+
 class BPMBar:
     def __init__(
         self, bpm: int, on_pass, on_start
@@ -284,21 +288,17 @@ class BPMBar:
             Mark.BAD: (0.65, 0.85),
         }
 
-        self.bar_width = 300
-        self.bar_height = 20
-
-        self.bar_x = (SCREEN_WIDTH - self.bar_width) // 2
-        self.bar_y = 600
+        self.bar_x = (SCREEN_WIDTH - BAR_WIDTH) // 2
 
         self.ball_radius = 10
         self.ball_position = 0
 
         self.interval_start_x = (
-                self.bar_x + self.mark_boundaries[Mark.BAD][0] * self.bar_width
+                self.bar_x + self.mark_boundaries[Mark.BAD][0] * BAR_WIDTH
         )
-        interval_end_x = self.bar_x + self.mark_boundaries[Mark.BAD][1] * self.bar_width
+        interval_end_x = self.bar_x + self.mark_boundaries[Mark.BAD][1] * BAR_WIDTH
 
-        self.mark_overlay_image = pygame.transform.scale(mark_overlay_image, (interval_end_x - self.interval_start_x, self.bar_height))
+        self.mark_overlay_image = pygame.transform.scale(mark_overlay_image, (interval_end_x - self.interval_start_x, BAR_HEIGHT))
 
         self.bpm = bpm
         self.count_duration = (COUNTS_PER_PASS * 60) / bpm
@@ -316,15 +316,15 @@ class BPMBar:
             self.on_start()
 
     def draw(self, surface):
-        ball_x = self.bar_x + self.ball_position * self.bar_width
-        ball_y = self.bar_y
+        ball_x = self.bar_x + self.ball_position * BAR_WIDTH
+        ball_y = BAR_Y
 
         pygame.draw.rect(
-            surface, BAR_COLOR, (self.bar_x, self.bar_y - self.ball_radius, self.bar_width, self.bar_height),
+            surface, BAR_COLOR, (self.bar_x, BAR_Y - self.ball_radius, BAR_WIDTH, BAR_HEIGHT),
             border_radius=20,
         )
 
-        surface.blit(self.mark_overlay_image, (self.interval_start_x, self.bar_y - self.ball_radius))
+        surface.blit(self.mark_overlay_image, (self.interval_start_x, BAR_Y - self.ball_radius))
 
         pygame.draw.circle(surface, LAVENDER, (int(ball_x), int(ball_y)), self.ball_radius)
 
@@ -350,6 +350,20 @@ class MarkDisplay:
         self.mark_display_start_time = None
         self.duration = 1
 
+        self.mark_to_text = {
+            Mark.PERFECT: "Perfect!",
+            Mark.GOOD: "Good",
+            Mark.BAD: "Bad...",
+            Mark.MISS: "Miss!"
+        }
+
+        self.mark_to_color = {
+            Mark.PERFECT: BLUE,
+            Mark.GOOD: GREEN,
+            Mark.BAD: YELLOW,
+            Mark.MISS: MAROON
+        }
+
     def show_mark(self, mark):
         self.displayed_mark = mark
         self.mark_display_start_time = time.time()
@@ -370,9 +384,17 @@ class MarkDisplay:
             self.clear()
 
     def _draw_mark(self, surface, mark):
-        font = pygame.font.Font(None, 50)
-        mark_text = font.render(str(mark), True, RED)
-        surface.blit(mark_text, (400, 300))
+        font = pygame.font.Font(None, 36)
+
+        mark_text = font.render(self.mark_to_text[mark], True, self.mark_to_color[mark])
+
+        bar_x = (SCREEN_WIDTH - BAR_WIDTH) // 2
+        text_width = mark_text.get_width()
+
+        x_position = bar_x + BAR_WIDTH + text_width / 2
+        y_position = BAR_Y - (BAR_HEIGHT // 2)
+
+        surface.blit(mark_text, (x_position, y_position))
 
 
 class DanceFloorScreen(Screen):
