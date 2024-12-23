@@ -1,19 +1,23 @@
 import pygame
 
-from graphics.common import GRAY, BLACK, FONT, dance_button_image, SCREEN_WIDTH, DANCE_BUTTON_WIDTH, MAROON
+from graphics.common import BLACK, MAIN_FONT, dance_button_image, SCREEN_WIDTH, DANCE_BUTTON_WIDTH, MAROON, LAVENDER, \
+    BLUE, TEXT_COLOR, HINT_COLOR, MANTLE
+
+BORDER_RADIUS = 5
 
 
 class InputField:
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, hint):
         self.rect = pygame.Rect(x, y, width, height)
-        self.color = GRAY
+        self.color = TEXT_COLOR
+        self.hint = hint
         self.text = ""
         self.active = False
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.active = self.rect.collidepoint(event.pos)
-            self.color = BLACK if self.active else GRAY
+            self.color = BLUE if self.active else TEXT_COLOR
 
         elif event.type == pygame.KEYDOWN and self.active:
             if event.key == pygame.K_BACKSPACE:
@@ -22,13 +26,15 @@ class InputField:
                 self.text += event.unicode
 
     def draw(self, surface):
-        rect_width = 2
-        pygame.draw.rect(surface, self.color, self.rect, rect_width)
+        pygame.draw.rect(surface, self.color, self.rect, width=2, border_radius=BORDER_RADIUS)
 
-        text_surface = FONT.render(self.text, True, BLACK)
-        text_padding = 5
+        if self.text:
+            text_surface = MAIN_FONT.render(self.text, True, TEXT_COLOR)
+        else:
+            text_surface = MAIN_FONT.render(self.hint, True, HINT_COLOR)
+
         surface.blit(
-            text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
+            text_surface, (self.rect.x + 10, self.rect.y + 7)
         )
 
 
@@ -42,12 +48,11 @@ class Button:
         pass
 
     def draw(self, surface):
-        pygame.draw.rect(surface, GRAY, self.rect)
+        pygame.draw.rect(surface, LAVENDER, self.rect, border_radius=BORDER_RADIUS)
 
-        text_surface = FONT.render(self.text, True, BLACK)
-        text_padding = 5
+        text_surface = MAIN_FONT.render(self.text, True, MANTLE)
         surface.blit(
-            text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
+            text_surface, (self.rect.x + 10, self.rect.y + 8)
         )
 
 
@@ -62,10 +67,10 @@ class DanceButton:
         if is_dancing:
             pygame.draw.rect(surface, MAROON, self.rect, border_radius=8)
 
-            text_surface = FONT.render("Stop", True, BLACK)
+            text_surface = MAIN_FONT.render("Stop", True, BLACK)
             text_padding = 15
             surface.blit(
-                text_surface, (self.rect.x + text_padding, self.rect.y + text_padding)
+                text_surface, (self.rect.x + DANCE_BUTTON_WIDTH / 2, self.rect.y + text_padding)
             )
         else:
             surface.blit(

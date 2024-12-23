@@ -12,7 +12,7 @@ from graphics.common import (
     YELLOW,
     BLUE,
     MAROON,
-    GREEN, blob_image, PLAYER_HEIGHT, happy_face_image,
+    GREEN, blob_image, PLAYER_HEIGHT, happy_face_image, logo_image, LOGO_WIDTH, SCREEN_WIDTH, DETAILS_FONT,
 )
 from graphics.elements import InputField, Button, DanceButton
 from models import PlayerState, GameState, SongState
@@ -45,9 +45,17 @@ class Screen:
 class LoginScreen(Screen):
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
-        self.username_field = InputField(100, 100, 200, 40)
-        self.password_field = InputField(100, 150, 200, 40)
-        self.login_button = Button(100, 200, 200, 40, "Login")
+
+        field_width = 250
+        field_height = 40
+        field_padding = 15
+
+        field_x = SCREEN_WIDTH / 2 - field_width / 2
+        field_y = 400
+
+        self.username_field = InputField(field_x, field_y, field_width, field_height, "Username")
+        self.password_field = InputField(field_x, field_y + field_padding + field_height, field_width, field_height, "Password")
+        self.login_button = Button(field_x, field_y + field_padding * 2 + field_height * 2, field_width, field_height, "Login")
         self.error = None
 
     def handle_event(self, event):
@@ -72,15 +80,16 @@ class LoginScreen(Screen):
                 print("Fatal error on sign in.")
 
     def draw(self, surface):
-        surface.fill(LAVENDER)
+        surface.fill(MANTLE)
+        surface.blit(logo_image, (SCREEN_WIDTH / 2 - LOGO_WIDTH / 2, 100))
+
         self.username_field.draw(surface)
         self.password_field.draw(surface)
         self.login_button.draw(surface)
 
         if self.error:
-            error_font = pygame.font.Font(None, 20)
-            error_surface = error_font.render(self.error, True, RED)
-            surface.blit(error_surface, (100, 250))
+            error_surface = DETAILS_FONT.render(self.error, True, MAROON)
+            surface.blit(error_surface, (15, 15))
 
 
 PLAYER_RADIUS = 15

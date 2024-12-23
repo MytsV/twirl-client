@@ -10,10 +10,14 @@ BLUE = (137, 180, 250)
 LAVENDER = (180, 190, 254)
 MANTLE = (24, 24, 37)
 
+TEXT_COLOR = (198, 208, 245)
+HINT_COLOR = (131, 139, 167)
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 RED = (255, 0, 0)
+
 
 def scale_by_height(image: pygame.Surface, new_height: int) -> pygame.Surface:
     original_width = image.get_width()
@@ -25,6 +29,7 @@ def scale_by_height(image: pygame.Surface, new_height: int) -> pygame.Surface:
 
     return scaled_image
 
+
 def scale_by_width(image: pygame.Surface, new_width: int) -> pygame.Surface:
     original_width = image.get_width()
     original_height = image.get_height()
@@ -35,8 +40,11 @@ def scale_by_width(image: pygame.Surface, new_width: int) -> pygame.Surface:
 
     return scaled_image
 
+
 pygame.init()
-FONT = pygame.font.Font(None, 32)
+
+MAIN_FONT = pygame.font.Font(None, 32)
+DETAILS_FONT = pygame.font.Font(None, 24)
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
@@ -51,3 +59,7 @@ happy_face_image = scale_by_width(happy_face_image, blob_image.get_width() - 30)
 DANCE_BUTTON_WIDTH = 250
 dance_button_image = pygame.image.load('./assets/images/dance_button.png')
 dance_button_image = scale_by_width(dance_button_image, DANCE_BUTTON_WIDTH)
+
+LOGO_WIDTH = 600
+logo_image = pygame.image.load('./assets/images/logo.png')
+logo_image = scale_by_width(logo_image, LOGO_WIDTH)
